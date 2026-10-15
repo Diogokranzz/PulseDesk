@@ -5,7 +5,7 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MarketDataService } from './core/market-data.service';
 import { ToastService } from './core/toast.service';
 import { money, quantity, signedMoney, signedPercent } from './core/format';
-import { NewOrder, OrderSide, OrderType, PulseDeskBackup, SimulationBackup } from './core/market.types';
+import { BookLevel, NewOrder, OrderSide, OrderType, PulseDeskBackup, SimulationBackup } from './core/market.types';
 import { CoinLogoComponent } from './shared/coin-logo.component';
 
 @Component({
@@ -26,6 +26,18 @@ export class AppComponent implements OnInit {
   readonly orderStrategy = signal('discretionary');
   readonly orderThesis = signal('');
   readonly capitalAmount = signal<number | null>(null);
+  readonly maxCapital = 1_000_000_000;
+  readonly capitalValidationMessage = computed(() => {
+    const amount = this.capitalAmount();
+    if (amount === null) return '';
+    if (!Number.isFinite(amount) || amount < 0.01) return 'O capital mínimo é US$ 0,01.';
+    if (amount > this.maxCapital) return `O limite de capital é ${money(this.maxCapital)}.`;
+    return '';
+  });
+  readonly canSaveCapital = computed(() => {
+    const amount = this.capitalAmount();
+    return !this.pending() && amount !== null && Number.isFinite(amount) && amount >= 0.01 && amount <= this.maxCapital;
+  });
   readonly resetPhrase = signal('');
   readonly backupRestorePhrase = signal('');
   readonly pendingBackup = signal<PulseDeskBackup | null>(null);
@@ -54,6 +66,24 @@ export class AppComponent implements OnInit {
     if (this.side() === 'buy') return snapshot.account.buyingPower;
     return snapshot.positions.find((position) => position.symbol === this.orderSymbol())?.availableQuantity ?? 0;
   });
+  readonly maxOrderQuantity = computed(() => {
+    const available = this.availableAmount();
+    if (!Number.isFinite(available) || available === null || available <= 0) return 0;
+    const snapshot = this.marketData.snapshot();
+    if (this.side() === 'sell') {
+      if (this.orderType() === 'limit') return available;
+      const active = snapshot?.active;
+      if (!active || active.symbol !== this.orderSymbol() || !active.book.fresh) return 0;
+      return Math.min(available, active.book.bids.reduce((sum, level) => sum + level.quantity, 0));
+    }
+    if (this.orderType() === 'limit') {
+      const price = this.limitPrice();
+      return Number.isFinite(price) && price !== null && price > 0 ? available / (price * 1.001) : 0;
+    }
+    const active = snapshot?.active;
+    if (!active || active.symbol !== this.orderSymbol() || !active.book.fresh) return 0;
+    return this.maxBuyQuantityForBudget(active.book.asks, available);
+  });
   readonly estimatedMarketExecution = computed(() => {
     const amount = this.orderQuantity();
     const snapshot = this.marketData.snapshot();
@@ -62,15 +92,56 @@ export class AppComponent implements OnInit {
     const levels = this.side() === 'buy' ? active.book.asks : active.book.bids;
     let remaining = amount;
     let notional = 0;
+    let spent = 0;
+    let filledQuantity = 0;
+    const budget = this.availableAmount() ?? 0;
     for (const level of levels) {
-      const filled = Math.min(remaining, level.quantity);
-      notional += filled * level.price;
+      let filled = Math.min(remaining, level.quantity);
+      if (this.side() === 'buy') filled = Math.min(filled, Math.max(0, budget - spent) / (level.price * 1.001));
+      if (filled <= 0) break;
+      const levelNotional = filled * level.price;
+      notional += levelNotional;
+      spent += levelNotional * (this.side() === 'buy' ? 1.001 : 1);
+      filledQuantity += filled;
       remaining -= filled;
       if (remaining <= 0.00000001) break;
     }
-    if (remaining > 0.00000001) return null;
-    return { notional, averagePrice: notional / amount };
+    if (filledQuantity <= 0) return null;
+    return { notional, averagePrice: notional / filledQuantity, filledQuantity, remainingQuantity: Math.max(0, remaining), complete: remaining <= 0.00000001 };
   });
+  readonly orderValidationMessage = computed(() => {
+    const snapshot = this.marketData.snapshot();
+    if (!snapshot?.account.capitalConfigured) return 'Configure o capital da conta antes de enviar uma ordem.';
+    if (!this.marketData.marketIsLive()) return 'Aguarde uma cotação atual para validar a ordem.';
+    if (snapshot.feed.provider !== 'Coinbase Advanced Trade') return 'O livro Coinbase precisa estar disponível para simular a ordem.';
+    const amount = this.orderQuantity();
+    const unit = this.currentMarket()?.short ?? 'ativo';
+    if (!Number.isFinite(amount) || amount === null || amount <= 0) return `Informe a quantidade em ${unit}; o campo não recebe valor em dólares.`;
+    if (amount > 1_000_000) return 'A quantidade máxima permitida por ordem é 1.000.000 unidades.';
+    if (this.orderType() === 'limit' && (!Number.isFinite(this.limitPrice()) || (this.limitPrice() ?? 0) <= 0)) return 'Informe um preço limite válido para calcular o valor reservado.';
+
+    const available = this.availableAmount() ?? 0;
+    if (this.side() === 'sell' && this.orderType() === 'limit' && amount > available + 1e-8) return `Você tem ${quantity(available)} ${unit} disponíveis para vender.`;
+    if (this.orderType() === 'market') {
+      const active = snapshot.active;
+      if (!active || active.symbol !== this.orderSymbol() || !active.book.fresh) return 'O livro de ofertas está desatualizado. Aguarde a atualização para estimar a ordem.';
+      const levels = this.side() === 'buy' ? active.book.asks : active.book.bids;
+      const bookQuantity = levels.reduce((sum, level) => sum + level.quantity, 0);
+      const maximum = this.maxOrderQuantity();
+      if (amount > maximum + 1e-8) {
+        if (this.side() === 'buy' && maximum < bookQuantity - 1e-8) return `Saldo insuficiente para ${quantity(amount)} ${unit}, incluindo a taxa de 0,10%. Com o saldo disponível, o máximo estimado é ${quantity(maximum)} ${unit}.`;
+        if (this.side() === 'sell' && amount > available + 1e-8) return `Você tem ${quantity(available)} ${unit} disponíveis para vender.`;
+        return `Profundidade insuficiente no livro para ${quantity(amount)} ${unit}. O máximo estimado agora é ${quantity(maximum)} ${unit}; reduza a quantidade ou use uma ordem limitada.`;
+      }
+    } else if (this.side() === 'buy' && amount > this.maxOrderQuantity() + 1e-8) {
+      return `Saldo insuficiente, incluindo a taxa de 0,10%. Com este preço limite, o máximo é ${quantity(this.maxOrderQuantity())} ${unit}.`;
+    } else if (this.side() === 'sell' && amount > available + 1e-8) {
+      return `Você tem ${quantity(available)} ${unit} disponíveis para vender.`;
+    }
+    return '';
+  });
+  readonly canPlaceOrder = computed(() => this.canSubmitOrder() && !this.orderValidationMessage());
+  readonly canAllocateQuantity = computed(() => this.maxOrderQuantity() > 0 && !this.pending());
   readonly estimatedNotional = computed(() => {
     const amount = this.orderQuantity();
     if (!Number.isFinite(amount) || amount === null || amount <= 0) return null;
@@ -197,11 +268,9 @@ export class AppComponent implements OnInit {
   }
 
   allocate(fraction: number): void {
-    const available = this.availableAmount();
-    const price = this.orderType() === 'limit' ? this.limitPrice() : this.currentMarket()?.price;
-    if (!Number.isFinite(available) || !Number.isFinite(price) || (price as number) <= 0) return;
-    const reserve = this.side() === 'buy' ? 1.001 : 1;
-    this.orderQuantity.set((available as number) * fraction / (price as number) / reserve);
+    const maxQuantity = this.maxOrderQuantity();
+    if (!Number.isFinite(maxQuantity) || maxQuantity <= 0) return;
+    this.orderQuantity.set(maxQuantity * fraction);
   }
 
   async submitOrder(): Promise<void> {
@@ -242,6 +311,10 @@ export class AppComponent implements OnInit {
 
   async saveCapital(): Promise<void> {
     const amount = this.capitalAmount();
+    if (Number.isFinite(amount) && amount !== null && amount > this.maxCapital) {
+      this.notices.show(this.capitalValidationMessage(), true);
+      return;
+    }
     if (!Number.isFinite(amount) || (amount as number) < 0.01) {
       this.notices.show('Informe um capital válido em USD.', true);
       return;
@@ -395,6 +468,20 @@ export class AppComponent implements OnInit {
 
   private closeDialogById(id: string): void {
     document.querySelector<HTMLDialogElement>(`#${id}`)?.close();
+  }
+
+  private maxBuyQuantityForBudget(levels: BookLevel[], budget: number): number {
+    let remainingBudget = budget;
+    let quantityAvailable = 0;
+    for (const level of levels) {
+      if (level.price <= 0 || level.quantity <= 0 || remainingBudget <= 0) continue;
+      const affordable = remainingBudget / (level.price * 1.001);
+      const fillable = Math.min(level.quantity, affordable);
+      quantityAvailable += fillable;
+      remainingBudget -= fillable * level.price * 1.001;
+      if (fillable + 1e-8 < level.quantity) break;
+    }
+    return quantityAvailable;
   }
 
   private loadProfile(): void {

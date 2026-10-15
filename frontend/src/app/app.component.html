@@ -129,8 +129,10 @@
     <p class="paperNote">Informe o valor que deseja usar na conta de demonstração. Nenhum saldo será presumido. Esse capital não representa dinheiro real.</p>
     <label class="fieldLabel" for="capitalAmount">Capital inicial em USD</label>
     <input class="formControl" id="capitalAmount" name="capitalAmount" type="number" min="0.01" max="1000000000" step="0.01" inputmode="decimal" placeholder="Ex.: 1000.00" required [ngModel]="capitalAmount()" (ngModelChange)="capitalAmount.set($event)">
+    @if (capitalValidationMessage()) { <p class="formValidation" role="status">{{ capitalValidationMessage() }}</p> }
+    @else { <p class="paperNote">Limite permitido: US$ 0,01 a US$ 1.000.000.000,00.</p> }
     <p class="paperNote">O capital pode ser corrigido antes da primeira ordem. Depois disso, o valor fica bloqueado para manter o histórico das ordens.</p>
-    <button class="submitOrderButton buySubmit" type="submit" [disabled]="pending()">{{ pending() ? 'Salvando…' : 'Salvar capital da conta' }}</button>
+    <button class="submitOrderButton buySubmit" type="submit" [disabled]="!canSaveCapital()">{{ pending() ? 'Salvando…' : 'Salvar capital da conta' }}</button>
   </form>
 </dialog>
 
@@ -162,15 +164,20 @@
       <div><label class="fieldLabel" for="orderType">Tipo de ordem</label><select class="formControl" id="orderType" name="orderType" [ngModel]="orderType()" (ngModelChange)="orderType.set($event)"><option value="market">A mercado</option><option value="limit">Limitada</option></select></div>
       <div><label class="fieldLabel" for="orderStrategy">Estratégia</label><select class="formControl" id="orderStrategy" name="orderStrategy" [ngModel]="orderStrategy()" (ngModelChange)="orderStrategy.set($event)"><option value="discretionary">Discricionária</option><option value="trend-following">Seguidora de tendência</option><option value="mean-reversion">Reversão à média</option><option value="breakout">Rompimento</option><option value="hedging">Proteção</option></select></div>
     </div>
-    <div class="orderFields"><div><label class="fieldLabel" for="orderQuantity">Quantidade</label><input class="formControl" id="orderQuantity" name="orderQuantity" type="number" min="0.0001" step="any" inputmode="decimal" placeholder="0.00" required [ngModel]="orderQuantity()" (ngModelChange)="orderQuantity.set($event)"></div>
+    <div class="orderFields"><div><label class="fieldLabel" for="orderQuantity">Quantidade ({{ currentMarket()?.short ?? 'ativo' }})</label><input class="formControl" id="orderQuantity" name="orderQuantity" type="number" min="0.0001" [attr.max]="maxOrderQuantity() || null" step="any" inputmode="decimal" placeholder="0.00" required [ngModel]="orderQuantity()" (ngModelChange)="orderQuantity.set($event)"></div>
       @if (orderType() === 'limit') { <div><label class="fieldLabel" for="limitPrice">Preço limite</label><input class="formControl" id="limitPrice" name="limitPrice" type="number" min="0.0001" step="any" inputmode="decimal" placeholder="0.00" required [ngModel]="limitPrice()" (ngModelChange)="limitPrice.set($event)"></div> }
     </div>
     <label class="fieldLabel" for="orderThesis">Tese da operação</label>
     <textarea class="formControl" id="orderThesis" name="orderThesis" rows="3" maxlength="500" placeholder="Registre o motivo, a hipótese e a condição de saída." [ngModel]="orderThesis()" (ngModelChange)="orderThesis.set($event)"></textarea>
-    <div class="quantityShortcuts"><button type="button" (click)="allocate(0.25)">25%</button><button type="button" (click)="allocate(0.5)">50%</button><button type="button" (click)="allocate(1)">Máximo</button><span>Disponível {{ money(availableAmount()) }}</span></div>
-    <div class="orderEstimate"><span>Preço médio estimado</span><strong>{{ money(estimatedAveragePrice()) }}</strong><span>Taxa estimada</span><strong>{{ money(estimatedFee()) }}</strong><span>Total estimado</span><strong>{{ money(estimatedTotal()) }}</strong></div>
-    <p class="paperNote">A prévia a mercado percorre os níveis atuais do livro Coinbase. A ordem é simulada e pode ficar parcial quando a profundidade disponível não cobrir toda a quantidade.</p>
+    <p class="paperNote orderUnitNote">Digite a quantidade de {{ currentMarket()?.short ?? 'moedas' }}, não um valor em USD. Os atalhos usam o saldo disponível e, em ordens a mercado, a profundidade atual do livro.</p>
+    <div class="quantityShortcuts"><button type="button" [disabled]="!canAllocateQuantity()" (click)="allocate(0.25)">25%</button><button type="button" [disabled]="!canAllocateQuantity()" (click)="allocate(0.5)">50%</button><button type="button" [disabled]="!canAllocateQuantity()" (click)="allocate(1)">Máximo</button><span>Disponível {{ money(availableAmount()) }}</span></div>
+    <div class="orderEstimate">
+      @if (orderType() === 'market') { <span>Quantidade executável no livro</span><strong>{{ quantity(estimatedMarketExecution()?.filledQuantity) }} / {{ quantity(orderQuantity()) }} {{ currentMarket()?.short ?? '' }}</strong> }
+      <span>Preço médio estimado</span><strong>{{ money(estimatedAveragePrice()) }}</strong><span>Taxa estimada</span><strong>{{ money(estimatedFee()) }}</strong><span>Total estimado</span><strong>{{ money(estimatedTotal()) }}</strong>
+    </div>
+    @if (orderValidationMessage()) { <p class="formValidation orderValidation" role="status">{{ orderValidationMessage() }}</p> }
+    <p class="paperNote">A ordem a mercado só é enviada se o saldo e a profundidade do livro cobrirem a quantidade inteira. Ordens limitadas podem aguardar ou receber preenchimento parcial.</p>
     @if (marketData.snapshot()?.feed.provider === 'Kraken') { <p class="paperNote">A cotação está usando o feed alternativo Kraken. Ordens simuladas aguardam o livro Coinbase para não misturar fontes.</p> }
-    <button class="submitOrderButton buySubmit" [class.sellSubmit]="side() === 'sell'" type="submit" [disabled]="!canSubmitOrder()">{{ pending() ? 'Enviando…' : side() === 'buy' ? 'Comprar em paper trading' : 'Vender em paper trading' }}</button>
+    <button class="submitOrderButton buySubmit" [class.sellSubmit]="side() === 'sell'" type="submit" [disabled]="!canPlaceOrder()">{{ pending() ? 'Enviando…' : side() === 'buy' ? 'Comprar em paper trading' : 'Vender em paper trading' }}</button>
   </form>
 </dialog>

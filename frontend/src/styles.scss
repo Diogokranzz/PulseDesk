@@ -2777,6 +2777,11 @@ h1 {
   color: #9de0bc;
 }
 
+.quantityShortcuts button:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
 .quantityShortcuts span {
   overflow: hidden;
   margin-left: auto;
@@ -2813,6 +2818,20 @@ h1 {
   color: #9aa7ae;
   font-size: 11px;
   line-height: 1.5;
+}
+
+.formValidation {
+  margin: 8px 0 0;
+  color: #ff858c;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.orderValidation {
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 111, 121, .28);
+  border-radius: 5px;
+  background: rgba(117, 37, 47, .12);
 }
 
 .capitalDialog .paperNote:first-of-type {
