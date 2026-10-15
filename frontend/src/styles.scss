@@ -3811,9 +3811,14 @@ h1 {
 
 .activityGrid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
   margin-top: 12px;
+}
+
+.activityGrid > .tapePanel,
+.activityGrid > .fillsPanel {
+  grid-column: 1 / -1;
 }
 
 .fillsPanel {
@@ -3821,8 +3826,20 @@ h1 {
   min-height: 240px;
 }
 
+.fillsPanel .tableWrap td small {
+  display: block;
+  margin-top: 3px;
+  color: #819097;
+  font-size: 9px;
+  line-height: 1.2;
+}
+
 .activityOrdersGrid {
   margin-top: 12px;
+}
+
+.activityOrdersGrid .ordersPanel {
+  grid-column: 1 / -1;
 }
 
 .performanceSvg {
