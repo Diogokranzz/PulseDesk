@@ -1,10 +1,12 @@
 import { Component, Input } from '@angular/core';
 import { MarketQuote } from '../core/market.types';
 import { shortTime, signedPercent } from '../core/format';
+import { CoinLogoComponent } from './coin-logo.component';
 
 @Component({
   selector: 'pd-market-signals',
   standalone: true,
+  imports: [CoinLogoComponent],
   templateUrl: './market-signals.component.html',
   styles: [':host{display:contents}']
 })
