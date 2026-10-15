@@ -5,7 +5,7 @@
     @if (publicTrades.length) {
       <div class="tapeRows">@for (trade of publicTrades; track trade.id) { <div class="tapeRow"><span>{{ shortTime(trade.time) }}</span><span [class.positiveText]="trade.side === 'buy'" [class.negativeText]="trade.side === 'sell'">{{ money(trade.price) }}</span><span>{{ quantity(trade.quantity) }}</span><span class="tapeSide" [class.buyBadge]="trade.side === 'buy'" [class.sellBadge]="trade.side === 'sell'">{{ trade.side === 'buy' ? 'COMPRA' : 'VENDA' }}</span></div> }</div>
     } @else {
-      <div class="tableEmpty">Negócios públicos indisponíveis; os outros painéis continuam ativos.</div>
+      <div class="tableEmpty">Aguardando os próximos negócios públicos ao vivo. Execuções paper e diário da conta são carregados separadamente.</div>
     }
   </article>
 

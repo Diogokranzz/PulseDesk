@@ -1,10 +1,10 @@
 <main class="dashboard pageDashboard" id="activityPage">
-  <section class="headingRow pageHeading"><div><div class="eyebrow"><span class="eyebrowLine"></span> DESK INSTITUCIONAL <span class="eyebrowMuted">/ REGISTRO</span></div><h1>Atividade</h1><p class="pageIntro">Execuções públicas do mercado e eventos da conta local.</p></div><span class="pageMode" [class.staleFeed]="!data.marketIsLive()"><i></i>{{ data.marketIsLive() ? 'FEED ATUALIZADO' : 'FEED SEM ATUALIZAÇÃO' }}</span></section>
+  <section class="headingRow pageHeading"><div><div class="eyebrow"><span class="eyebrowLine"></span> DESK INSTITUCIONAL <span class="eyebrowMuted">/ REGISTRO</span></div><h1>Atividade</h1><p class="pageIntro">Execuções públicas do mercado e eventos da conta local.</p></div><span class="pageMode" [class.staleFeed]="!data.marketIsLive()"><i></i>{{ data.marketIsLive() ? 'COTAÇÕES AO VIVO' : 'COTAÇÕES DESATUALIZADAS' }}</span></section>
   @if (data.snapshot(); as snapshot) {
     <pd-activity-feed [snapshot]="snapshot"></pd-activity-feed>
     <pd-trade-journal [orders]="snapshot.orders"></pd-trade-journal>
     <section class="mainGrid activityOrdersGrid"><pd-orders-table [orders]="snapshot.orders" [pending]="busy()" (cancel)="cancelOrder($event)"></pd-orders-table></section>
   } @else {
-    <section class="startupState" role="status"><span class="chartEmptyPulse"></span><div><h2>Registro local aguardando a API</h2><p>Ordens e execuções locais reaparecerão após a conexão, sem limpar o histórico salvo.</p></div></section>
+    <section class="startupState" role="status"><span class="chartEmptyPulse"></span><div><h2>Carregando atividade local</h2><p>Ordens e execuções ficam salvas neste navegador e aparecem aqui assim que os dados da conta forem carregados.</p></div></section>
   }
 </main>

@@ -202,9 +202,14 @@ export class BrowserMarketFeed {
       } else if (channel === 'l2_data') {
         this.applyBookEvent(event, now);
       } else if (channel === 'market_trades') {
-        const trades = Array.isArray(event['trades']) ? event['trades'] as Array<Record<string, unknown>> : [];
-        const asset = this.assets.find((item) => item.productId === event['product_id']);
-        if (asset) for (const trade of trades) this.applyTrade(asset, trade);
+        const trades = Array.isArray(event['trades']) ? event['trades'] : [];
+        for (const value of trades) {
+          if (typeof value !== 'object' || value === null || Array.isArray(value)) continue;
+          const trade = value as Record<string, unknown>;
+          const productId = trade['product_id'] ?? event['product_id'];
+          const asset = this.assets.find((item) => item.productId === productId);
+          if (asset) this.applyTrade(asset, trade);
+        }
       }
     }
     this.changed();
@@ -257,6 +262,7 @@ export class BrowserMarketFeed {
     if (price === null || quantity === null || price <= 0 || quantity <= 0) return;
     const side: OrderSide = String(trade['side'] ?? '').toUpperCase() === 'BUY' ? 'buy' : 'sell';
     const id = String(trade['trade_id'] ?? trade['tradeId'] ?? `${time}-${price}-${quantity}`);
+    if (asset.trades.some((item) => item.id === id)) return;
     asset.trades.unshift({ id, time, price, quantity, side });
     if (asset.trades.length > 40) asset.trades.length = 40;
     asset.tradesUpdatedAt = Date.now();
