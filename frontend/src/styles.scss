@@ -787,6 +787,7 @@ h1 {
 .chartPanel {
   grid-column: span 8;
   min-height: 377px;
+  align-self: start;
 }
 
 .bookPanel {
