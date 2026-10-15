@@ -2,12 +2,6 @@
 
 Terminal local para acompanhar cotações públicas de criptoativos, analisar uma carteira informada manualmente e simular operações sem transmitir ordens a uma corretora.
 
-![Visualização orbital de mercado do Pulse Desk](docs/images/pulsedesk-orbital-market.svg)
-
-A arte orbital é uma ilustração SVG estática para apresentar a identidade visual. A animação do terminal é renderizada pela aplicação e acompanha o estado dos dados recebidos. Preços, variações, correlações, sinais e património são calculados ou recebidos em tempo de execução; os elementos decorativos da imagem não são dados financeiros.
-
-![Referência visual do terminal financeiro](docs/images/referencia_terminal.jpg)
-
 ## Produto
 
 O frontend usa Angular 22, TypeScript estrito, componentes standalone e estado reativo. A API é executada em Node.js, mantém a conta local e conecta-se a provedores públicos de mercado.
@@ -180,9 +174,6 @@ src/
   journal.js             diário local de eventos financeiros
   trading.js             validação e simulação de ordens
   server.js              API HTTP, saúde e fluxo SSE
-docs/images/
-  pulsedesk-orbital-market.svg ilustração para o README
-  referencia_terminal.jpg     captura de referência visual
 ```
 
 ## Uso responsável
