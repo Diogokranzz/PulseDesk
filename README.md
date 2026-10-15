@@ -1,6 +1,10 @@
 # Pulse Desk
 
-Terminal local para acompanhar cotações públicas de criptoativos, analisar uma carteira informada manualmente e simular operações sem transmitir ordens a uma corretora.
+Plataforma de análise de mercado cripto para acompanhar cotações públicas, analisar uma carteira configurada manualmente e simular operações em paper trading, sem enviar ordens a corretoras.
+
+![Captura real do Pulse Desk: visão de mercado, saúde dos provedores, gráfico do Bitcoin e livro de ofertas](docs/images/pulsedesk-terminal.png)
+
+*Captura da interface real do projeto. As cotações e os horários correspondem ao momento da captura.*
 
 ## Produto
 
@@ -178,4 +182,4 @@ src/
 
 ## Uso responsável
 
-O Pulse Desk é uma ferramenta local de estudo e simulação. Preços públicos, candles e indicadores podem atrasar, divergir entre provedores ou não estar disponíveis. O modelo de regimes descreve observações passadas e não prevê o futuro. Cenários, replay, risco e ordens paper não são recomendações nem garantias de resultado.
+O Pulse Desk é uma plataforma de estudo e simulação. Preços públicos, candles e indicadores podem atrasar, divergir entre provedores ou não estar disponíveis. O modelo de regimes descreve observações passadas e não prevê o futuro. Cenários, replay, risco e ordens paper não são recomendações nem garantias de resultado.
