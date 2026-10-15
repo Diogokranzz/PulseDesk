@@ -1,0 +1,26 @@
+<article class="panel riskPanel">
+  <div class="panelHeader">
+    <div>
+      <div class="panelTitle">Risco da carteira <span class="panelTag">CENÁRIOS OBSERVADOS</span></div>
+      <div class="chartSubtitle">MÉTRICAS DESCRITIVAS · NÃO SÃO PREVISÕES</div>
+    </div>
+  </div>
+  <div class="riskGrid">
+    <div class="riskMetric">
+      <span>Maior concentração</span>
+      <strong>{{ mostConcentrated ? signedPercent(mostConcentrated.percent) : '—' }}</strong>
+      <small>{{ mostConcentrated ? mostConcentrated.symbol + ' do patrimônio' : !account.capitalConfigured ? 'Informe seu capital para iniciar' : positions.length ? 'Aguardando cotações completas' : 'Sem posições abertas' }}</small>
+    </div>
+    <div class="riskMetric">
+      <span>Queda hipotética de 10%</span>
+      <strong>{{ scenarioLoss !== null ? '−' + money(scenarioLoss) : '—' }}</strong>
+      <small>{{ scenarioEquity !== null ? 'Patrimônio no cenário: ' + money(scenarioEquity) : 'Exige patrimônio e cotações atuais' }}</small>
+    </div>
+    <div class="riskMetric">
+      <span>Maior recuo observado · 24h</span>
+      <strong>{{ maxDrawdown !== null ? signedPercent(-maxDrawdown) : '—' }}</strong>
+      <small>{{ maxDrawdown !== null ? 'Calculado a partir da série patrimonial persistida' : 'Aguardando histórico suficiente de patrimônio' }}</small>
+    </div>
+  </div>
+  <p class="riskDisclaimer">O cenário aplica uma queda uniforme às posições atuais. Não estima a probabilidade nem o comportamento futuro do mercado.</p>
+</article>

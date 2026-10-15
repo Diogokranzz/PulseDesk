@@ -1,0 +1,39 @@
+<main class="dashboard" id="overview">
+  <pd-market-strip [markets]="data.snapshot()?.markets ?? []" [selectedSymbol]="data.selectedSymbol()" [feedFresh]="data.marketIsLive()" (marketSelected)="openMarketDetails($event)"></pd-market-strip>
+
+  <section class="headingRow">
+    <div><div class="eyebrow"><span class="eyebrowLine"></span> DESK INSTITUCIONAL <span class="eyebrowMuted">/ VISÃO GERAL</span></div><h1>Visão de mercado</h1></div>
+    <div class="headingActions"><span class="lastUpdate"><span class="liveDot" [class.staleFeed]="data.displayMode() === 'stale' || data.displayMode() === 'degraded'" [class.offlineFeed]="data.displayMode() === 'offline'"></span><span>{{ data.displayMode() === 'live' ? 'Feed ao vivo' : data.displayMode() === 'offline' ? 'API local indisponível' : 'Aguardando cotações ao vivo' }}{{ data.snapshot()?.feed?.marketUpdatedAt ? ' · ' + shortTime(data.snapshot()?.feed?.marketUpdatedAt) + ' BRT' : '' }}</span></span>
+      <button class="subtleButton" type="button" (click)="refresh()" [disabled]="busy()"><span class="refreshIcon">↻</span><span>{{ busy() ? 'Atualizando…' : 'Atualizar painel' }}</span></button>
+    </div>
+  </section>
+
+  @if (data.snapshot(); as snapshot) {
+    <pd-account-summary [account]="snapshot.account" [markets]="snapshot.markets" [performance]="snapshot.performance"></pd-account-summary>
+    <section class="mainGrid">
+      <pd-provider-health [sources]="snapshot.feed.sources" [sseConnections]="snapshot.operations.sseConnections" [apiLive]="data.apiConnection() === 'online'"></pd-provider-health>
+      <pd-price-chart [active]="snapshot.active" [interval]="interval()" [feedFresh]="data.marketIsLive()" [candlesFresh]="snapshot.active.candlesFresh" (intervalChange)="interval.set($event)"></pd-price-chart>
+      <pd-order-book [active]="snapshot.active" [feedFresh]="data.marketIsLive()"></pd-order-book>
+      <pd-market-flow [nodes]="snapshot.network.nodes" [intelligence]="snapshot.network.intelligence" [feedFresh]="data.marketIsLive()" [updatedAt]="snapshot.feed.marketUpdatedAt" [selectedSymbol]="data.selectedSymbol()" (symbolSelected)="openMarketDetails($event)"></pd-market-flow>
+      <pd-market-signals [markets]="snapshot.markets" [feedFresh]="data.marketIsLive()"></pd-market-signals>
+      <pd-market-alerts [markets]="snapshot.markets" [account]="snapshot.account" [orders]="snapshot.orders" [feedFresh]="data.marketIsLive()"></pd-market-alerts>
+      <pd-positions-table [positions]="snapshot.positions" [markets]="snapshot.markets" [capitalConfigured]="snapshot.account.capitalConfigured" [totalValue]="snapshot.account.positionsValue"></pd-positions-table>
+      <article class="panel tapePanel">
+        <div class="panelHeader"><div><div class="panelTitle">Negócios recentes <span class="tapeLive" [class.staleFeed]="!snapshot.active.tradesFresh"><i></i>{{ snapshot.active.tradesFresh ? 'ATUALIZADO' : 'SEM DADOS' }}</span></div><div class="chartSubtitle">ÚLTIMAS EXECUÇÕES PÚBLICAS · {{ snapshot.active.short }}/USD · {{ snapshot.feed.channels.tradesUpdatedAt ? shortTime(snapshot.feed.channels.tradesUpdatedAt) + ' BRT' : 'SEM LEITURA ATUAL' }}</div></div></div>
+        <div class="tapeHead"><span>HORA</span><span>PREÇO</span><span>QUANTIDADE</span><span>LADO</span></div>
+        @if (snapshot.active.trades.length) { <div class="tapeRows">@for (trade of snapshot.active.trades.slice(0, 8); track trade.id) { <div class="tapeRow"><span>{{ shortTime(trade.time) }}</span><span>{{ money(trade.price) }}</span><span>{{ quantity(trade.quantity) }}</span><span class="tapeSide" [class.buyBadge]="trade.side === 'buy'" [class.sellBadge]="trade.side === 'sell'">{{ trade.side === 'buy' ? 'COMPRA' : 'VENDA' }}</span></div> }</div> }
+        @else { <div class="tableEmpty">Aguardando negócios públicos. As outras áreas do terminal continuam disponíveis.</div> }
+      </article>
+      <pd-orders-table [orders]="snapshot.orders" [showOpenOnly]="true" [pending]="busy()" (cancel)="cancelOrder($event)"></pd-orders-table>
+      <pd-performance-chart [points]="snapshot.performance" [dailyReturn]="snapshot.account.dailyValuationComplete ? snapshot.account.dailyPercent : null" [capitalConfigured]="snapshot.account.capitalConfigured"></pd-performance-chart>
+    </section>
+  } @else {
+    <section class="startupState" role="status"><span class="chartEmptyPulse"></span><div><h2>Terminal local iniciando</h2><p>A interface está ativa. Assim que a API responder, os painéis serão preenchidos sem recarregar a página.</p></div><span class="startupStateStatus">{{ data.displayMode() === 'offline' ? 'AGUARDANDO API' : 'CONECTANDO' }}</span></section>
+  }
+</main>
+
+@if (marketDetailsSymbol()) {
+  @if (marketDetailsQuote(); as quote) {
+    <pd-market-details-dialog [quote]="quote" [active]="marketDetailsActive()" [feedFresh]="data.marketIsLive()" [provider]="data.snapshot()?.feed?.provider ?? 'Feed público'" (closed)="closeMarketDetails()"></pd-market-details-dialog>
+  }
+}

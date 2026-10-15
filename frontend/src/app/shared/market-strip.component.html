@@ -1,0 +1,17 @@
+<section class="marketRibbon" aria-label="Mercados acompanhados">
+  <div class="ribbonLabel"><span class="signalPulse" [class.signalPulseStale]="!feedFresh"></span> MERCADO <span class="ribbonDivider"></span> 24H</div>
+  <div class="marketList">
+    @for (market of markets; track market.symbol) {
+      <button class="marketChip" type="button" [class.selected]="selectedSymbol === market.symbol" [class.staleFeed]="!market.fresh" [attr.aria-pressed]="selectedSymbol === market.symbol" [attr.aria-label]="'Abrir detalhes de ' + market.name + ' e visualizar cotações ao vivo'" [attr.title]="market.updatedAt ? 'Última cotação recebida às ' + shortTime(market.updatedAt) + ' BRT' : 'Nenhuma cotação atual disponível'" (click)="marketSelected.emit(market.symbol)">
+        <span class="chipLogo" [style.--assetColor]="market.color"><pd-coin-logo [symbol]="market.short" [label]="market.name" [decorative]="true"></pd-coin-logo></span>
+        <span class="chipSymbol" [style.--assetColor]="market.color">{{ market.short }}</span>
+        <span class="chipPrice">{{ money(market.price) }}</span>
+        <span class="chipChange" [class.positiveText]="(market.change ?? 0) >= 0" [class.negativeText]="(market.change ?? 0) < 0">{{ signedPercent(market.change) }}</span>
+      </button>
+    }
+    @if (!markets.length) {
+      <span class="marketListEmpty">Aguardando dados do terminal</span>
+    }
+  </div>
+  <div class="marketTime"><span>{{ now() | date:'HH:mm:ss':'America/Sao_Paulo' }}</span><span class="clockZone">UTC−3</span></div>
+</section>

@@ -1,0 +1,19 @@
+<section class="activityGrid">
+  <article class="panel tapePanel">
+    <div class="panelHeader"><div><div class="panelTitle">Negócios recentes <span class="tapeLive" [class.staleFeed]="!snapshot.active.tradesFresh"><i></i>{{ snapshot.active.tradesFresh ? 'ATUALIZADO' : 'INDISPONÍVEL' }}</span></div><div class="chartSubtitle">EXECUÇÕES PÚBLICAS · {{ snapshot.active.short }}/USD · {{ snapshot.feed.channels.tradesUpdatedAt ? shortTime(snapshot.feed.channels.tradesUpdatedAt) + ' BRT' : 'SEM LEITURA ATUAL' }}</div></div></div>
+    <div class="tapeHead"><span>HORA</span><span>PREÇO</span><span>QUANTIDADE</span><span>LADO</span></div>
+    @if (publicTrades.length) {
+      <div class="tapeRows">@for (trade of publicTrades; track trade.id) { <div class="tapeRow"><span>{{ shortTime(trade.time) }}</span><span [class.positiveText]="trade.side === 'buy'" [class.negativeText]="trade.side === 'sell'">{{ money(trade.price) }}</span><span>{{ quantity(trade.quantity) }}</span><span class="tapeSide" [class.buyBadge]="trade.side === 'buy'" [class.sellBadge]="trade.side === 'sell'">{{ trade.side === 'buy' ? 'COMPRA' : 'VENDA' }}</span></div> }</div>
+    } @else {
+      <div class="tableEmpty">Negócios públicos indisponíveis; os outros painéis continuam ativos.</div>
+    }
+  </article>
+
+  <article class="panel fillsPanel">
+    <div class="panelHeader"><div><div class="panelTitle">Execuções da conta</div><div class="chartSubtitle">PAPER TRADING · REGISTRO LOCAL</div></div><span class="countBadge">{{ recentFills.length.toString().padStart(2, '0') }}</span></div>
+    <div class="tableWrap"><table><thead><tr><th>HORÁRIO</th><th>ATIVO</th><th>LADO</th><th>QUANTIDADE</th><th>PREÇO</th><th>TAXA</th></tr></thead><tbody>
+      @for (fill of recentFills; track fill.id) { <tr><td>{{ dateTime(fill.time) }}</td><td>{{ fill.symbol.replace('USD', '') }}</td><td><span class="sideBadge" [class.buyBadge]="fill.side === 'buy'" [class.sellBadge]="fill.side === 'sell'">{{ fill.side === 'buy' ? 'COMPRA' : 'VENDA' }}</span></td><td>{{ quantity(fill.quantity) }}</td><td>{{ money(fill.price) }}<small>{{ fill.slippageBps === undefined ? 'slippage n/d' : fill.slippageBps.toFixed(2) + ' bps' }}</small></td><td>{{ money(fill.fee) }}</td></tr> }
+      @empty { <tr><td colspan="6" class="tableEmpty">Nenhuma execução registrada nesta conta.</td></tr> }
+    </tbody></table></div>
+  </article>
+</section>

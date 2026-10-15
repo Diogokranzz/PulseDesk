@@ -1,0 +1,36 @@
+<article class="panel alertsPanel">
+  <div class="panelHeader">
+    <div><div class="panelTitle">Alertas e limites <span class="panelTag">LOCAL</span></div><div class="chartSubtitle">PREÇOS, PERDA DIÁRIA, EXECUÇÕES E FRESCOR DO FEED</div></div>
+    <span class="marketPulseStatus"><span></span>{{ alerts().length }}/30</span>
+  </div>
+  <form class="alertForm" (ngSubmit)="addAlert()">
+    <label class="visuallyHidden" for="alertSymbol">Ativo</label>
+    <select class="formControl" id="alertSymbol" name="alertSymbol" [ngModel]="selectedSymbol()" (ngModelChange)="selectedSymbol.set($event)">
+      @for (market of markets; track market.symbol) { <option [value]="market.symbol">{{ market.short }}</option> }
+    </select>
+    <label class="visuallyHidden" for="alertCondition">Condição</label>
+    <select class="formControl" id="alertCondition" name="alertCondition" [ngModel]="condition()" (ngModelChange)="condition.set($event)">
+      <option value="above">Acima de</option><option value="below">Abaixo de</option>
+    </select>
+    <label class="visuallyHidden" for="alertTarget">Preço em USD</label>
+    <input class="formControl" id="alertTarget" name="alertTarget" type="number" min="0.000001" step="any" placeholder="Preço USD" [ngModel]="target()" (ngModelChange)="target.set($event)">
+    <button class="subtleButton" type="submit" [disabled]="alerts().length >= 30 || !markets.length">Criar alerta</button>
+  </form>
+  <div class="alertSettings">
+    <label class="alertSettingLabel" for="lossAlertLimit">Limite de perda em 24h USD</label>
+    <input class="formControl" id="lossAlertLimit" name="lossAlertLimit" type="number" min="0.01" step="0.01" placeholder="Desativado" [ngModel]="lossLimitDraft()" (ngModelChange)="lossLimitDraft.set($event)">
+    <div><button class="subtleButton" type="button" (click)="saveDailyLossLimit()">Salvar limite</button><button class="alertRemove" type="button" aria-label="Remover limite de perda" (click)="clearDailyLossLimit()">×</button></div>
+    <label class="alertToggle"><input type="checkbox" [ngModel]="preferences().tradeExecutions" (ngModelChange)="setTradeNotifications($event)" name="tradeNotifications"> Avisar novas execuções</label>
+    <label class="alertToggle"><input type="checkbox" [ngModel]="preferences().staleFeed" (ngModelChange)="setFeedNotifications($event)" name="feedNotifications"> Avisar feed desatualizado</label>
+  </div>
+  <div class="alertList">
+    @for (alert of alerts(); track alert.id) {
+      <div class="alertRow" [class.alertFired]="alert.firedAt !== null">
+        <span><strong>{{ marketName(alert.symbol) }}</strong> {{ alert.condition === 'above' ? 'acima de' : 'abaixo de' }} {{ money(alert.target) }} · {{ alert.firedAt ? 'ATINGIDO' : 'AGUARDANDO' }}</span>
+        <button class="alertRemove" type="button" [attr.aria-label]="'Remover alerta de ' + marketName(alert.symbol)" (click)="remove(alert.id)">×</button>
+      </div>
+    } @empty {
+      <div class="alertEmpty">Crie um alerta de preço para receber uma notificação quando o feed atual cruzar o valor.</div>
+    }
+  </div>
+</article>

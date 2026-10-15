@@ -1,0 +1,11 @@
+<article class="panel performancePanel">
+  <div class="panelHeader"><div><div class="panelTitle">Desempenho da conta</div><div class="chartSubtitle">PATRIMÔNIO OBSERVADO <span class="separatorDot">·</span> ÚLTIMA HORA</div></div><div class="performanceMetric"><strong [class.positiveText]="(dailyReturn ?? 0) >= 0" [class.negativeText]="(dailyReturn ?? 0) < 0">{{ capitalConfigured ? signedPercent(dailyReturn) : signedPercent(0) }}</strong><span>RETORNO 24H</span></div></div>
+  <div class="performanceCanvasWrap">
+    @if (points.length > 1) {
+      <svg id="performanceChart" class="performanceSvg" viewBox="0 0 820 210" role="img" aria-label="Curva observada do patrimônio na última hora" preserveAspectRatio="none"><g class="chartGrid"><line x1="20" y1="32" x2="800" y2="32"></line><line x1="20" y1="82" x2="800" y2="82"></line><line x1="20" y1="132" x2="800" y2="132"></line><line x1="20" y1="192" x2="800" y2="192"></line></g><path class="performanceArea" [attr.d]="area"></path><path class="performanceLine" [attr.d]="line"></path></svg>
+    } @else {
+      <div class="performanceEmpty">{{ capitalConfigured ? 'A curva será formada depois que houver cotações disponíveis.' : 'Informe seu capital para iniciar o acompanhamento financeiro.' }}</div>
+    }
+  </div>
+  <div class="performanceFooter"><span>ÚLTIMA HORA</span><span>{{ capitalConfigured ? money(points[0]?.value) : money(0) }}</span><span></span><span>{{ capitalConfigured ? money(latestValue) : money(0) }}</span><span>AGORA</span></div>
+</article>

@@ -1,0 +1,6 @@
+<article class="panel insightsPanel">
+  <div class="panelHeader"><div><div class="panelTitle">Leitura da carteira</div><div class="chartSubtitle">CONSULTA LOCAL · NÚMEROS DETERMINÍSTICOS E REGIME DE MERCADO INFERIDO</div></div><span class="panelTag">SOMENTE LEITURA</span></div>
+  <div class="insightPrompt"><label for="insightQuestion">Pergunta</label><select class="formControl" id="insightQuestion" name="insightQuestion" [(ngModel)]="question"><option value="daily">O que mudou no resultado nas últimas 24 horas?</option><option value="concentration">Quanto da carteira está em cada ativo?</option><option value="scenario">Qual o efeito de uma queda de 10%?</option><option value="market">Como estão spread, volume e regime do ativo?</option></select></div>
+  <div class="insightAnswer" aria-live="polite"><strong>{{ answer.title }}</strong><p>{{ answer.body }}</p></div>
+  <p class="insightFootnote">{{ answer.quality }} · Os cálculos financeiros permanecem determinísticos. O modelo K-means local classifica padrões observados; não prevê preços, recomenda investimentos ou executa ordens. Dados privados permanecem neste computador.</p>
+</article>

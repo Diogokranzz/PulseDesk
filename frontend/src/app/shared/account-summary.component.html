@@ -1,0 +1,33 @@
+<section class="summaryGrid" aria-label="Resumo da conta">
+  <article class="summaryCard equityCard">
+    <div class="cardLabel">PATRIMÔNIO TOTAL <span class="infoMark" title="Caixa mais o valor de mercado das posições">i</span></div>
+    <div class="equityValue">{{ account.capitalConfigured ? account.valuationComplete ? money(account.equity) : '—' : money(0) }}</div>
+    <div class="equityFoot"><span [class.positiveText]="(account.dailyPnl ?? 0) >= 0" [class.negativeText]="(account.dailyPnl ?? 0) < 0">{{ account.capitalConfigured ? account.dailyValuationComplete ? signedMoney(account.dailyPnl) : '—' : signedMoney(0) }}</span><span class="mutedText" [attr.title]="account.dailyReferenceAt ? 'Variação do patrimônio total desde ' + shortTime(account.dailyReferenceAt) + ' BRT, incluindo resultado realizado e em aberto.' : 'O retorno só aparece quando existe uma amostra de patrimônio com aproximadamente 24 horas.'">24h observado</span><span class="equityDivider"></span><span [class.positiveText]="(account.dailyPercent ?? 0) >= 0" [class.negativeText]="(account.dailyPercent ?? 0) < 0">{{ account.capitalConfigured ? account.dailyValuationComplete ? signedPercent(account.dailyPercent) : '—' : signedPercent(0) }}</span></div>
+    @if (sparkline) {
+      <div class="equitySpark" aria-hidden="true"><svg viewBox="0 0 280 54" preserveAspectRatio="none"><path class="sparkFill" [attr.d]="sparkline + ' L 280 54 L 0 54 Z'"></path><path class="sparkLine" [attr.d]="sparkline"></path></svg></div>
+    }
+  </article>
+
+  <article class="summaryCard">
+    <div class="cardLabel">P&L TOTAL <span class="metricMenu">···</span></div>
+    <div class="metricValue" [class.positiveText]="(account.totalPnl ?? 0) >= 0" [class.negativeText]="(account.totalPnl ?? 0) < 0">{{ account.capitalConfigured ? account.valuationComplete ? signedMoney(account.totalPnl) : '—' : signedMoney(0) }}</div>
+    <div class="metricSub">Resultado acumulado da conta</div>
+    <div class="metricBreakdown"><span>Realizado</span><strong [class.positiveText]="(account.realizedPnl ?? 0) >= 0" [class.negativeText]="(account.realizedPnl ?? 0) < 0">{{ signedMoney(account.realizedPnl ?? 0) }}</strong></div>
+    <div class="metricBreakdown"><span>Em aberto</span><strong [class.positiveText]="(account.unrealizedPnl ?? 0) >= 0" [class.negativeText]="(account.unrealizedPnl ?? 0) < 0">{{ account.capitalConfigured ? account.valuationComplete ? signedMoney(account.unrealizedPnl) : '—' : signedMoney(0) }}</strong></div>
+  </article>
+
+  <article class="summaryCard">
+    <div class="cardLabel">SALDO DISPONÍVEL <span class="infoMark" title="Saldo livre após reservas de ordens limitadas">i</span></div>
+    <div class="metricValue">{{ money(account.buyingPower ?? 0) }}</div>
+    <div class="metricSub">Poder de compra em USD</div>
+    <div class="cashBar"><span [style.width.%]="cashPercent"></span></div>
+    <div class="cashBarLabels"><span>Capital alocado</span><strong>{{ account.capitalConfigured ? account.valuationComplete ? money(account.positionsValue) : '—' : money(0) }}</strong></div>
+  </article>
+
+  <article class="summaryCard marketPulseCard">
+    <div class="cardLabel">PULSO DO MERCADO <span class="marketPulseStatus" [attr.data-state]="freshMarketCount ? 'live' : 'offline'"><span></span>{{ freshMarketCount === markets.length && freshMarketCount ? 'AO VIVO' : freshMarketCount ? 'PARCIAL' : 'DESATUALIZADO' }}</span></div>
+    <div class="pulseMetric"><strong>{{ risingCount }}<span>/{{ freshMarketCount || markets.length || 5 }}</span></strong><span>ativos atualizados em alta</span></div>
+    <div class="breadthBars">@for (market of markets; track market.symbol) { <i [style.height.px]="barHeight(market.change)" [style.background]="barColor(market.change)"></i> }</div>
+    <div class="pulseBottom"><span>Amplitude média atualizada</span><strong>{{ averageMovement === null ? '—' : signedPercent(averageMovement) }}</strong></div>
+  </article>
+</section>

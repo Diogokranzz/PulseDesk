@@ -1,0 +1,22 @@
+<article class="panel journalPanel">
+  <div class="panelHeader"><div><div class="panelTitle">Diário de operações</div><div class="chartSubtitle">TESES REGISTRADAS · ESTATÍSTICAS DAS ÚLTIMAS ORDENS LOCAIS</div></div><span class="countBadge">{{ journalEntries.length.toString().padStart(2, '0') }}</span></div>
+  @if (strategySummaries.length) {
+    <div class="strategyGrid">
+      @for (summary of strategySummaries; track summary.name) {
+        <div class="strategyCard"><strong>{{ summary.name }}</strong><span>{{ summary.orders }} ordens · {{ summary.executedOrders }} com execução</span><span>Volume {{ money(summary.volume) }} · taxas {{ money(summary.fees) }}</span></div>
+      }
+    </div>
+  }
+  @if (journalEntries.length) {
+    <div class="journalList">
+      @for (order of journalEntries; track order.id) {
+        <article class="journalEntry">
+          <header><strong>{{ order.symbol.replace('USD', '') }} · {{ order.side === 'buy' ? 'Compra' : 'Venda' }} · {{ order.strategy || 'discretionary' }}</strong><span>{{ dateTime(order.createdAt) }} · {{ order.filledQuantity > 0 ? quantity(order.filledQuantity) + ' executado' : 'aguardando' }}</span></header>
+          @if (order.thesis) { <p>{{ order.thesis }}</p> }
+        </article>
+      }
+    </div>
+  } @else {
+    <div class="journalEmpty">Registre uma tese ao enviar uma ordem para começar a medir as estratégias.</div>
+  }
+</article>

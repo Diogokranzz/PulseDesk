@@ -1,0 +1,16 @@
+<main class="dashboard pageDashboard" id="portfolioPage">
+  <section class="headingRow pageHeading"><div><div class="eyebrow"><span class="eyebrowLine"></span> DESK INSTITUCIONAL <span class="eyebrowMuted">/ CARTEIRA</span></div><h1>Portfólio</h1><p class="pageIntro">Exposição, caixa e ordens calculados com o capital informado manualmente.</p></div><span class="pageMode" [class.staleFeed]="!data.marketIsLive()"><i></i>{{ data.marketIsLive() ? 'VALORAÇÃO AO VIVO' : 'COTAÇÕES INDISPONÍVEIS' }}</span></section>
+  @if (data.snapshot(); as snapshot) {
+    <pd-account-summary [account]="snapshot.account" [markets]="snapshot.markets" [performance]="snapshot.performance"></pd-account-summary>
+    <pd-portfolio-risk [account]="snapshot.account" [positions]="snapshot.positions" [performance]="snapshot.performance"></pd-portfolio-risk>
+    <pd-portfolio-insights [snapshot]="snapshot"></pd-portfolio-insights>
+    <pd-backtest [active]="snapshot.active"></pd-backtest>
+    <section class="mainGrid portfolioGrid">
+      <pd-positions-table [positions]="snapshot.positions" [markets]="snapshot.markets" [capitalConfigured]="snapshot.account.capitalConfigured" [totalValue]="snapshot.account.positionsValue" [showPortfolioLink]="false"></pd-positions-table>
+      <pd-performance-chart [points]="snapshot.performance" [dailyReturn]="snapshot.account.dailyValuationComplete ? snapshot.account.dailyPercent : null" [capitalConfigured]="snapshot.account.capitalConfigured"></pd-performance-chart>
+      <pd-orders-table [orders]="snapshot.orders" [showOpenOnly]="true" [pending]="busy()" (cancel)="cancelOrder($event)"></pd-orders-table>
+    </section>
+  } @else {
+    <section class="startupState" role="status"><span class="chartEmptyPulse"></span><div><h2>Carteira protegida durante a reconexão</h2><p>Os dados financeiros serão carregados quando a API local responder. Nenhum saldo será presumido.</p></div></section>
+  }
+</main>

@@ -1,0 +1,18 @@
+<article class="panel bookPanel">
+  <div class="panelHeader"><div><div class="panelTitle">Livro de ofertas</div><div class="chartSubtitle">PROFUNDIDADE DE MERCADO <span class="separatorDot">·</span> <span class="channelStatus" [class.staleFeed]="!active.book.fresh">{{ active.book.fresh ? 'ATUALIZADO' : 'INDISPONÍVEL' }}</span> · {{ active.book.updatedAt ? shortTime(active.book.updatedAt) + ' BRT' : 'SEM LEITURA ATUAL' }}</div></div><span class="panelMenu" aria-hidden="true">···</span></div>
+  <div class="bookHead"><span>PREÇO <small>USD</small></span><span>QUANTIDADE</span><span>TOTAL</span></div>
+  @if (bookReady) {
+    <div class="bookRows asks">
+      @for (row of askRows; track row.price) { <div class="bookRow" [style.--depth.%]="row.width"><span class="bookPrice">{{ money(row.price) }}</span><span>{{ quantity(row.quantity) }}</span><span>{{ quantity(row.cumulative) }}</span></div> }
+    </div>
+    <div class="bookSpread"><span>Spread</span><strong>{{ money(spread) }}</strong><span>{{ money(midpoint) }}</span></div>
+    <div class="bookRows bids">
+      @for (row of bidRows; track row.price) { <div class="bookRow" [style.--depth.%]="row.width"><span class="bookPrice">{{ money(row.price) }}</span><span>{{ quantity(row.quantity) }}</span><span>{{ quantity(row.cumulative) }}</span></div> }
+    </div>
+    <div class="depthLegend"><span><i class="depthGreen"></i>Compra <b>{{ bidShare }}%</b></span><span><i class="depthRed"></i>Venda <b>{{ bidShare === null ? '—' : 100 - bidShare }}%</b></span></div>
+  } @else {
+    <div class="bookUnavailable"><span class="chartEmptyPulse"></span><strong>{{ feedFresh ? 'Livro aguardando snapshot Level 2' : 'Livro indisponível no feed atual' }}</strong><span>O restante do terminal e os dados da conta continuam disponíveis.</span></div>
+    <div class="bookSpread"><span>Spread</span><strong>—</strong><span>—</span></div>
+    <div class="depthLegend"><span><i class="depthGreen"></i>Compra <b>—</b></span><span><i class="depthRed"></i>Venda <b>—</b></span></div>
+  }
+</article>

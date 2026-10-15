@@ -1,0 +1,13 @@
+<article class="panel providerPanel">
+  <div class="panelHeader"><div><div class="panelTitle">Saúde da API e dos provedores</div><div class="chartSubtitle">FRESCOR DAS COTAÇÕES, RECONEXÕES E CONEXÕES EM TEMPO REAL</div></div><span class="panelTag">{{ apiLive ? 'API LOCAL ATIVA' : 'API LOCAL SEM RESPOSTA' }} · {{ sseConnections }} SSE</span></div>
+  <div class="providerRows">
+    <div class="providerRow">
+      <div class="providerName"><i [class.isFresh]="sources.coinbase.status === 'online' && sources.coinbase.freshAssets > 0"></i>Coinbase · principal</div>
+      <div class="providerMeta"><span class="providerState" [class.isFresh]="sources.coinbase.status === 'online' && sources.coinbase.freshAssets > 0">{{ statusLabel(sources.coinbase.status, sources.coinbase.freshAssets) }}</span><span>{{ sources.coinbase.freshAssets }}/5 ativos com cotação atual · {{ sources.coinbase.reconnects }} reconexões</span><span>{{ sources.coinbase.lastQuoteAt ? 'Última cotação ' + shortTime(sources.coinbase.lastQuoteAt) + ' BRT' : 'Aguardando primeira cotação' }}</span></div>
+    </div>
+    <div class="providerRow">
+      <div class="providerName"><i [class.isFresh]="sources.kraken.status === 'online' && sources.kraken.freshAssets > 0"></i>Kraken · contingência</div>
+      <div class="providerMeta"><span class="providerState" [class.isFresh]="sources.kraken.status === 'online' && sources.kraken.freshAssets > 0">{{ statusLabel(sources.kraken.status, sources.kraken.freshAssets) }}</span><span>{{ sources.kraken.freshAssets }}/5 ativos com cotação atual · {{ sources.kraken.reconnects }} reconexões</span><span>{{ sources.kraken.lastQuoteAt ? 'Última cotação ' + shortTime(sources.kraken.lastQuoteAt) + ' BRT' : 'Aguardando primeira cotação' }}</span></div>
+    </div>
+  </div>
+</article>

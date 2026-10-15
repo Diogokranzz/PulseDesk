@@ -1,0 +1,71 @@
+<dialog #marketDialog class="marketDetailsDialog" [style.--asset-color]="quote.color" aria-labelledby="marketDetailsTitle" (click)="closeOnBackdrop($event)" (close)="closed.emit()">
+  <section class="marketDetailsSurface">
+    <div class="marketDetailsTop">
+      <div class="marketDetailsIdentity">
+        <span class="marketDetailsLogo"><pd-coin-logo [symbol]="quote.short" [label]="quote.name" [decorative]="true"></pd-coin-logo></span>
+        <div><div class="marketDetailsEyebrow">COTAÇÃO PÚBLICA <span>{{ quote.symbol }}</span></div><h2 id="marketDetailsTitle">{{ quote.name }} <span>{{ quote.short }}/USD</span></h2></div>
+      </div>
+      <button class="dialogClose marketDetailsClose" type="button" aria-label="Fechar detalhes da moeda" (click)="close()">×</button>
+    </div>
+
+    <div class="marketDetailsHero">
+      <div>
+        <span class="marketDetailsLabel">PREÇO ATUAL · USD</span>
+        <strong class="marketDetailsPrice">{{ money(currentPrice) }}</strong>
+        <span class="marketDetailsChange" [class.positiveText]="(currentChange ?? 0) >= 0" [class.negativeText]="(currentChange ?? 0) < 0">{{ signedPercent(currentChange) }} <small>24H</small></span>
+      </div>
+      <span class="marketDetailsLive" [class.marketDetailsStale]="!currentFresh"><i></i>{{ currentFresh ? 'COTAÇÃO AO VIVO' : 'AGUARDANDO DADO ATUAL' }}</span>
+    </div>
+
+    <div class="marketDetailsChart">
+      <div class="marketDetailsSectionHeading"><span>HISTÓRICO RECENTE</span><span>{{ activeForQuote?.candlesFresh ? 'VELAS ATUALIZADAS' : 'SEM SÉRIE ATUAL' }}</span></div>
+      @if (candlePath && activeForQuote?.candlesFresh) {
+        <svg viewBox="0 0 600 92" preserveAspectRatio="none" role="img" [attr.aria-label]="'Histórico recente de preço de ' + quote.name">
+          <defs><linearGradient id="marketDetailsLine" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="var(--asset-color)" stop-opacity=".45"></stop><stop offset="1" stop-color="var(--asset-color)"></stop></linearGradient></defs>
+          <path class="marketDetailsChartPath" [attr.d]="candlePath"></path>
+        </svg>
+      } @else {
+        <div class="marketDetailsChartEmpty">A série de preços será exibida quando o feed de candles responder.</div>
+      }
+    </div>
+
+    <div class="marketDetailsStats">
+      <div><span>MÁXIMA 24H</span><strong>{{ money(activeForQuote?.high ?? null) }}</strong></div>
+      <div><span>MÍNIMA 24H</span><strong>{{ money(activeForQuote?.low ?? null) }}</strong></div>
+      <div><span>VOLUME 24H</span><strong>{{ quantity(currentVolume) }} {{ quote.short }}</strong></div>
+      <div><span>ÚLTIMA ATUALIZAÇÃO</span><strong>{{ currentUpdatedAt ? shortTime(currentUpdatedAt) + ' BRT' : '—' }}</strong></div>
+    </div>
+
+    <div class="marketDetailsLower">
+      <section class="marketDetailsBook">
+        <div class="marketDetailsSectionHeading"><span>LIVRO DE OFERTAS</span><span>{{ activeForQuote?.book.fresh ? 'NÍVEL 2' : 'SEM DADOS' }}</span></div>
+        @if (askLevels.length && bidLevels.length) {
+          @for (level of askLevels; track level.price) {
+            <div class="marketDetailsBookRow marketDetailsAsk"><span>VENDA</span><strong>{{ money(level.price) }}</strong><span>{{ quantity(level.quantity) }}</span></div>
+          }
+          <div class="marketDetailsBookSpread"><span>SPREAD</span><strong>{{ money(spread) }} <small>{{ spreadPercent === null ? '—' : spreadPercent.toFixed(4) + '%' }}</small></strong></div>
+          @for (level of bidLevels; track level.price) {
+            <div class="marketDetailsBookRow marketDetailsBid"><span>COMPRA</span><strong>{{ money(level.price) }}</strong><span>{{ quantity(level.quantity) }}</span></div>
+          }
+        } @else {
+          <div class="marketDetailsBookRow"><span>Melhor compra</span><strong class="positiveText">{{ money(bestBid) }}</strong></div>
+          <div class="marketDetailsBookRow"><span>Spread</span><strong>{{ money(spread) }} <small>{{ spreadPercent === null ? '—' : spreadPercent.toFixed(4) + '%' }}</small></strong></div>
+          <div class="marketDetailsBookRow"><span>Melhor venda</span><strong class="negativeText">{{ money(bestAsk) }}</strong></div>
+        }
+      </section>
+
+      <section class="marketDetailsTrades">
+        <div class="marketDetailsSectionHeading"><span>NEGÓCIOS RECENTES</span><span>{{ activeForQuote?.tradesFresh ? 'AO VIVO' : 'SEM DADOS' }}</span></div>
+        @if (recentTrades.length) {
+          @for (trade of recentTrades; track trade.id) {
+            <div class="marketDetailsTradeRow"><span>{{ shortTime(trade.time) }}</span><strong>{{ money(trade.price) }}</strong><span>{{ quantity(trade.quantity) }} {{ quote.short }}</span><span [class.positiveText]="trade.side === 'buy'" [class.negativeText]="trade.side === 'sell'">{{ trade.side === 'buy' ? 'COMPRA' : 'VENDA' }}</span></div>
+          }
+        } @else {
+          <div class="marketDetailsChartEmpty marketDetailsNoTrades">Execuções públicas aguardando dados atuais.</div>
+        }
+      </section>
+    </div>
+
+    <div class="marketDetailsFooter"><span>Fonte {{ provider }}</span><span>{{ activeForQuote?.book.fresh ? 'Livro atualizado' : 'Livro indisponível' }} · {{ activeForQuote?.tradesFresh ? 'Negócios atualizados' : 'Negócios indisponíveis' }}</span></div>
+  </section>
+</dialog>

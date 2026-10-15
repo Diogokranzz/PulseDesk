@@ -1,0 +1,176 @@
+<div class="appShell">
+  <header class="topbar">
+    <a class="brand" routerLink="/" aria-label="Pulse Desk, início">
+      <span class="brandMark" aria-hidden="true"><span></span><span></span><span></span></span>
+      <span class="brandName">pulse<span>desk</span></span>
+    </a>
+
+    <nav class="primaryNav" aria-label="Navegação principal">
+      <a class="navItem" routerLink="/" routerLinkActive="selected" [routerLinkActiveOptions]="{ exact: true }">Terminal</a>
+      <a class="navItem" routerLink="/portfolio" routerLinkActive="selected">Portfólio</a>
+      <a class="navItem" routerLink="/activity" routerLinkActive="selected">Atividade</a>
+    </nav>
+
+    <div class="topbarRight">
+      <span class="marketPulseStatus" [attr.data-state]="marketData.marketIsLive() ? 'live' : 'offline'">
+        <span></span>{{ liveLabel() }}
+      </span>
+      @if (marketData.snapshot(); as snapshot) {
+        @if (snapshot.account.capitalEditable) { <button class="subtleButton topbarAction" type="button" (click)="openDialog(capitalDialog)">{{ snapshot.account.capitalConfigured ? 'Ajustar capital' : 'Adicionar capital' }}</button> }
+        @if (snapshot.account.hasSimulationData) { <button class="subtleButton resetButton topbarAction" type="button" (click)="openDialog(resetDialog)">Apagar simulação</button> }
+        @if (snapshot.account.capitalConfigured) { <button class="primaryButton topbarAction" type="button" (click)="openOrder()"><span>+</span> Nova ordem</button> }
+      }
+      <button class="iconButton" #helpButton aria-label="Informações do ambiente" title="Informações do ambiente" (click)="openDialog(helpDialog)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M9.8 9a2.3 2.3 0 1 1 3.9 1.7c-1.1 1-1.7 1.4-1.7 2.8M12 17h.01"></path></svg>
+      </button>
+      <button class="avatar" type="button" [attr.aria-label]="'Abrir perfil de ' + profileName()" [attr.title]="profileName()" (click)="openProfile(profileDialog)">
+        @if (profileAvatar(); as avatar) { <img [src]="avatar" alt=""> } @else { <span>{{ profileInitials() }}</span> }
+      </button>
+    </div>
+  </header>
+
+  @if (marketData.lastError()) {
+    <div class="apiBanner" role="status">
+      <span class="apiBannerDot"></span>
+      <span>{{ marketData.lastError() }}</span>
+      @if (marketData.snapshot()) {
+        <span class="apiBannerTail">A interface e a conta continuam disponíveis.</span>
+      }
+    </div>
+  }
+
+  <router-outlet></router-outlet>
+
+  <footer class="pageFooter">
+    <span><span class="footerLogo">P</span> PULSE DESK <span class="footerDivider"></span> PAPER TRADING</span>
+  </footer>
+</div>
+
+<div class="toastRegion" aria-live="polite" aria-atomic="true">
+  @if (notices.message()) {
+    <div class="toast" [class.error]="notices.isError()"><i aria-hidden="true"></i><span>{{ notices.message() }}</span></div>
+  }
+</div>
+
+<dialog class="infoDialog profileDialog" #profileDialog aria-labelledby="profileDialogTitle">
+  <div class="dialogTop profileDialogTop">
+    <div class="profileDialogHeading">
+      <div class="profileAvatarLarge">
+        @if (profileAvatarDraft(); as avatar) { <img [src]="avatar" alt=""> } @else { <span>{{ profileInitials() }}</span> }
+      </div>
+      <div><div class="eyebrow"><span class="eyebrowLine"></span> IDENTIDADE LOCAL</div><h2 id="profileDialogTitle">Meu perfil</h2></div>
+    </div>
+    <button class="dialogClose" type="button" aria-label="Fechar" (click)="closeDialog(profileDialog)">×</button>
+  </div>
+  <form (ngSubmit)="saveProfile(profileDialog)">
+    <label class="fieldLabel">Logo da conta</label>
+    <div class="profileAvatarEditor">
+      <div class="profileAvatarLarge profileAvatarPreview">
+        @if (profileAvatarDraft(); as avatar) { <img [src]="avatar" alt="Prévia da imagem da conta"> } @else { <span>{{ profileInitials() }}</span> }
+      </div>
+      <div class="profileAvatarOptions">
+        <label class="subtleButton profileUploadButton" for="profileAvatarInput">Escolher imagem</label>
+        <input class="profileFileInput" id="profileAvatarInput" type="file" accept="image/png,image/jpeg,image/webp" (change)="selectProfileAvatar($event)">
+        <button class="subtleButton profileRemoveButton" type="button" [disabled]="!profileAvatarDraft()" (click)="removeProfileAvatar()">Usar iniciais</button>
+        <span>PNG, JPG ou WEBP até 512 KB. A imagem fica neste navegador.</span>
+      </div>
+    </div>
+    <label class="fieldLabel" for="profileName">Nome exibido</label>
+    <input class="formControl" id="profileName" name="profileName" type="text" minlength="2" maxlength="40" autocomplete="nickname" required [ngModel]="profileNameDraft()" (ngModelChange)="profileNameDraft.set($event)">
+    <div class="profileFacts">
+      <span>Identidade <strong>Salva neste navegador</strong></span>
+      <span>Feed de mercado <strong>{{ liveLabel() }}</strong></span>
+      <span>Conta financeira <strong>{{ marketData.snapshot()?.account?.capitalConfigured ? 'Capital informado manualmente' : 'Aguardando seu capital' }}</strong></span>
+    </div>
+    <p class="paperNote">Este perfil identifica a interface neste dispositivo. Ele não cria login nem envia seus dados para um servidor.</p>
+    <section class="backupSection" aria-labelledby="backupSectionTitle">
+      <div><strong id="backupSectionTitle">Cópia de segurança</strong><span>Inclui a simulação local e o perfil deste navegador.</span></div>
+      <div class="backupActions">
+        <button class="subtleButton" type="button" [disabled]="pending()" (click)="downloadBackup()">Baixar backup</button>
+        <button class="subtleButton" type="button" [disabled]="pending()" (click)="backupFileInput.click()">Restaurar backup</button>
+        <input #backupFileInput class="profileFileInput" type="file" accept="application/json,.json" aria-label="Selecionar backup Pulse Desk" (change)="selectBackup($event, profileDialog, restoreDialog)">
+      </div>
+      <span class="backupFootnote">A restauração substitui a simulação e o perfil atuais.</span>
+    </section>
+    <div class="profileDialogActions">
+      <button class="subtleButton" type="button" (click)="closeDialog(profileDialog)">Cancelar</button>
+      <button class="dialogAction" type="submit">Salvar perfil</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="infoDialog resetDialog backupRestoreDialog" #restoreDialog aria-labelledby="restoreDialogTitle">
+  <div class="dialogTop"><div><div class="eyebrow"><span class="eyebrowLine"></span> CÓPIA LOCAL</div><h2 id="restoreDialogTitle">Restaurar backup</h2></div><button class="dialogClose" type="button" aria-label="Fechar" (click)="cancelBackupRestore(restoreDialog)">×</button></div>
+  @if (pendingBackup(); as backup) {
+    <p>O arquivo foi exportado em {{ backup.exportedAt | date:'dd/MM/yyyy HH:mm:ss':'America/Sao_Paulo' }} BRT.</p>
+    <div class="backupPreview"><span>Perfil <strong>{{ backup.profile.name }}</strong></span><span>Capital inicial <strong>{{ backup.simulation.account.capitalConfigured ? money(backup.simulation.account.initialCapital) : 'Não configurado' }}</strong></span><span>Posições <strong>{{ backup.simulation.account.positions.length }}</strong></span><span>Ordens <strong>{{ backup.simulation.account.orders.length }}</strong></span><span>Execuções <strong>{{ backup.simulation.account.fills.length }}</strong></span></div>
+    <p class="paperNote">Esta ação substitui a simulação atual e salva o perfil incluído no arquivo. O gráfico patrimonial inicia uma nova série de observações após a restauração.</p>
+    <label class="fieldLabel" for="backupRestorePhrase">Confirmação</label>
+    <input class="formControl" id="backupRestorePhrase" name="backupRestorePhrase" autocomplete="off" placeholder="Digite RESTAURAR" [ngModel]="backupRestorePhrase()" (ngModelChange)="backupRestorePhrase.set($event)">
+    <div class="resetDialogActions"><button class="subtleButton" type="button" (click)="cancelBackupRestore(restoreDialog)">Cancelar</button><button class="resetConfirmButton" type="button" [disabled]="pending()" (click)="confirmBackupRestore(restoreDialog)">{{ pending() ? 'Restaurando…' : 'Restaurar dados' }}</button></div>
+  }
+</dialog>
+
+<dialog class="infoDialog" #helpDialog>
+  <div class="dialogTop">
+    <span class="brandMark small" aria-hidden="true"><span></span><span></span><span></span></span>
+    <button class="dialogClose" type="button" aria-label="Fechar" (click)="closeDialog(helpDialog)">×</button>
+  </div>
+  <div class="eyebrow"><span class="eyebrowLine"></span> SOBRE ESTE AMBIENTE</div>
+  <h2>Mercado ao vivo e conta de demonstração</h2>
+  <p>As cotações vêm de fontes públicas. Saldo, posições, ordens e execuções pertencem à conta local de paper trading e não movimentam dinheiro real. Quando um provedor falha, o terminal sinaliza os dados indisponíveis até a conexão voltar.</p>
+  <div class="dialogFacts"><span>Fonte principal <strong>Coinbase Advanced Trade</strong></span><span>Conta <strong>Paper trading local</strong></span><span>Taxa simulada <strong>0,10%</strong></span></div>
+  <button class="dialogAction" type="button" (click)="closeDialog(helpDialog)">Entendi</button>
+</dialog>
+
+<dialog class="infoDialog orderDialog capitalDialog" #capitalDialog id="capitalDialog">
+  <div class="dialogTop"><div><div class="eyebrow"><span class="eyebrowLine"></span> PAPER TRADING</div><h2>Configurar capital</h2></div><button class="dialogClose" type="button" aria-label="Fechar" (click)="closeDialog(capitalDialog)">×</button></div>
+  <form (ngSubmit)="saveCapital()">
+    <p class="paperNote">Informe o valor que deseja usar na conta de demonstração. Nenhum saldo será presumido. Esse capital não representa dinheiro real.</p>
+    <label class="fieldLabel" for="capitalAmount">Capital inicial em USD</label>
+    <input class="formControl" id="capitalAmount" name="capitalAmount" type="number" min="0.01" max="1000000000" step="0.01" inputmode="decimal" placeholder="Ex.: 1000.00" required [ngModel]="capitalAmount()" (ngModelChange)="capitalAmount.set($event)">
+    <p class="paperNote">O capital pode ser corrigido antes da primeira ordem. Depois disso, o valor fica bloqueado para manter o histórico das ordens.</p>
+    <button class="submitOrderButton buySubmit" type="submit" [disabled]="pending()">{{ pending() ? 'Salvando…' : 'Salvar capital da conta' }}</button>
+  </form>
+</dialog>
+
+<dialog class="infoDialog resetDialog" #resetDialog id="resetDialog" aria-labelledby="resetDialogTitle" aria-describedby="resetDialogDescription">
+  <div class="dialogTop"><div><div class="eyebrow"><span class="eyebrowLine"></span> CONTA DE DEMONSTRAÇÃO</div><h2 id="resetDialogTitle">Apagar simulação?</h2></div><button class="dialogClose" type="button" aria-label="Fechar" (click)="closeDialog(resetDialog)">×</button></div>
+  <p id="resetDialogDescription">Esta ação remove capital, saldos, posições, ordens, execuções e histórico financeiro local. As cotações permanecem. Digite APAGAR para continuar.</p>
+  <label class="fieldLabel" for="resetPhrase">Confirmação</label>
+  <input class="formControl" id="resetPhrase" name="resetPhrase" autocomplete="off" placeholder="Digite APAGAR" [ngModel]="resetPhrase()" (ngModelChange)="resetPhrase.set($event)">
+  <div class="resetDialogActions"><button class="subtleButton" type="button" (click)="closeDialog(resetDialog)">Manter simulação</button><button class="resetConfirmButton" type="button" [disabled]="pending()" (click)="confirmReset()">Apagar dados</button></div>
+</dialog>
+
+<dialog class="infoDialog orderDialog" #orderDialog id="orderDialog">
+  <div class="dialogTop"><div><div class="eyebrow"><span class="eyebrowLine"></span> PAPER TRADING</div><h2>Nova ordem</h2></div><button class="dialogClose" type="button" aria-label="Fechar" (click)="closeDialog(orderDialog)">×</button></div>
+  <form (ngSubmit)="submitOrder()">
+    <div class="sidePicker" role="group" aria-label="Direção da ordem">
+      <button type="button" class="sideChoice buyChoice" [class.selected]="side() === 'buy'" (click)="side.set('buy')">Comprar</button>
+      <button type="button" class="sideChoice sellChoice" [class.selected]="side() === 'sell'" (click)="side.set('sell')">Vender</button>
+    </div>
+    <div class="fieldLabel">Escolha do ativo</div>
+    <div class="assetPicker" role="group" aria-label="Ativo da ordem">
+      @for (market of visibleMarkets(); track market.symbol) {
+        <button class="assetPickerOption" type="button" [class.selected]="orderSymbol() === market.symbol" [attr.aria-pressed]="orderSymbol() === market.symbol" (click)="selectOrderSymbol(market.symbol)">
+          <span class="assetPickerLogo" [style.--assetColor]="market.color"><pd-coin-logo [symbol]="market.short" [label]="market.name" [decorative]="true"></pd-coin-logo></span>
+          <span class="assetPickerText"><strong>{{ market.short }}</strong><span>{{ market.name }}</span></span>
+        </button>
+      }
+    </div>
+    <div class="orderFieldPair">
+      <div><label class="fieldLabel" for="orderType">Tipo de ordem</label><select class="formControl" id="orderType" name="orderType" [ngModel]="orderType()" (ngModelChange)="orderType.set($event)"><option value="market">A mercado</option><option value="limit">Limitada</option></select></div>
+      <div><label class="fieldLabel" for="orderStrategy">Estratégia</label><select class="formControl" id="orderStrategy" name="orderStrategy" [ngModel]="orderStrategy()" (ngModelChange)="orderStrategy.set($event)"><option value="discretionary">Discricionária</option><option value="trend-following">Seguidora de tendência</option><option value="mean-reversion">Reversão à média</option><option value="breakout">Rompimento</option><option value="hedging">Proteção</option></select></div>
+    </div>
+    <div class="orderFields"><div><label class="fieldLabel" for="orderQuantity">Quantidade</label><input class="formControl" id="orderQuantity" name="orderQuantity" type="number" min="0.0001" step="any" inputmode="decimal" placeholder="0.00" required [ngModel]="orderQuantity()" (ngModelChange)="orderQuantity.set($event)"></div>
+      @if (orderType() === 'limit') { <div><label class="fieldLabel" for="limitPrice">Preço limite</label><input class="formControl" id="limitPrice" name="limitPrice" type="number" min="0.0001" step="any" inputmode="decimal" placeholder="0.00" required [ngModel]="limitPrice()" (ngModelChange)="limitPrice.set($event)"></div> }
+    </div>
+    <label class="fieldLabel" for="orderThesis">Tese da operação</label>
+    <textarea class="formControl" id="orderThesis" name="orderThesis" rows="3" maxlength="500" placeholder="Registre o motivo, a hipótese e a condição de saída." [ngModel]="orderThesis()" (ngModelChange)="orderThesis.set($event)"></textarea>
+    <div class="quantityShortcuts"><button type="button" (click)="allocate(0.25)">25%</button><button type="button" (click)="allocate(0.5)">50%</button><button type="button" (click)="allocate(1)">Máximo</button><span>Disponível {{ money(availableAmount()) }}</span></div>
+    <div class="orderEstimate"><span>Preço médio estimado</span><strong>{{ money(estimatedAveragePrice()) }}</strong><span>Taxa estimada</span><strong>{{ money(estimatedFee()) }}</strong><span>Total estimado</span><strong>{{ money(estimatedTotal()) }}</strong></div>
+    <p class="paperNote">A prévia a mercado percorre os níveis atuais do livro Coinbase. A ordem é simulada e pode ficar parcial quando a profundidade disponível não cobrir toda a quantidade.</p>
+    @if (marketData.snapshot()?.feed.provider === 'Kraken') { <p class="paperNote">A cotação está usando o feed alternativo Kraken. Ordens simuladas aguardam o livro Coinbase para não misturar fontes.</p> }
+    <button class="submitOrderButton buySubmit" [class.sellSubmit]="side() === 'sell'" type="submit" [disabled]="!canSubmitOrder()">{{ pending() ? 'Enviando…' : side() === 'buy' ? 'Comprar em paper trading' : 'Vender em paper trading' }}</button>
+  </form>
+</dialog>

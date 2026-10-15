@@ -1,0 +1,23 @@
+<article class="panel backtestPanel">
+  <div class="panelHeader"><div><div class="panelTitle">Replay histórico</div><div class="chartSubtitle">CRUZAMENTO DE MÉDIAS · {{ active.short }}/USD · CANDLES PÚBLICOS DE 1 MINUTO</div></div></div>
+  <div class="backtestControls">
+    <label for="backtestFast">Média rápida<input class="formControl" id="backtestFast" name="backtestFast" type="number" min="2" max="99" step="1" [(ngModel)]="fastPeriod"></label>
+    <label for="backtestSlow">Média lenta<input class="formControl" id="backtestSlow" name="backtestSlow" type="number" min="3" max="100" step="1" [(ngModel)]="slowPeriod"></label>
+    <label for="backtestSlippage">Slippage assumido em pontos base<input class="formControl" id="backtestSlippage" name="backtestSlippage" type="number" min="0" max="500" step="1" [(ngModel)]="slippageBps"></label>
+  </div>
+  @if (result; as outcome) {
+    <div class="backtestMetrics">
+      <div class="backtestMetric"><span>Retorno líquido</span><strong>{{ signedPercent(outcome.totalReturn) }}</strong></div>
+      <div class="backtestMetric"><span>Comprar e manter</span><strong>{{ signedPercent(outcome.buyAndHoldReturn) }}</strong></div>
+      <div class="backtestMetric"><span>Rebaixamento máximo</span><strong>{{ outcome.maxDrawdown.toFixed(2) }}%</strong></div>
+      <div class="backtestMetric"><span>Operações vencedoras</span><strong>{{ outcome.wins }} / {{ outcome.trades }}</strong></div>
+      <div class="backtestMetric"><span>Saldo teórico</span><strong>{{ money(outcome.endingEquity) }}</strong></div>
+      <div class="backtestMetric"><span>Taxas estimadas</span><strong>{{ money(outcome.fees) }}</strong></div>
+      <div class="backtestMetric"><span>Amostras históricas</span><strong>{{ outcome.candles }}</strong></div>
+      <div class="backtestMetric"><span>Janela aproximada</span><strong>{{ (outcome.candles / 60).toFixed(1) }} h</strong></div>
+    </div>
+    <p class="backtestNote">Reprodução determinística, somente leitura. O sinal usa candles já encerrados e a ordem simulada entra na abertura seguinte. Inclui taxa estimada de 0,10% por execução e o slippage configurado. Capital teórico de US$ 10.000, sem influência na conta do usuário. Resultados passados não estimam retornos futuros.</p>
+  } @else {
+    <div class="backtestEmpty">Aguardando histórico suficiente. Ajuste a média rápida para um período menor que a lenta e aguarde pelo menos {{ slowPeriod + 3 }} candles válidos.</div>
+  }
+</article>

@@ -1,0 +1,40 @@
+<article class="panel networkPanel">
+  <div class="panelHeader networkHeader">
+    <div>
+      <div class="panelTitle">Radar de mercado <span class="panelTag">ATIVOS ACOMPANHADOS</span></div>
+      <div class="chartSubtitle">COTAÇÕES AO VIVO · MODELO LOCAL DE REGIMES DE MERCADO</div>
+    </div>
+    <div class="networkLegend">
+      <span><i class="legendUp"></i>Alta</span>
+      <span><i class="legendDown"></i>Baixa</span>
+      <span class="networkLive" [class.staleFeed]="!feedFresh"><i></i>{{ feedFresh ? 'AO VIVO' : 'SEM COTAÇÕES' }}</span>
+    </div>
+  </div>
+  <div class="networkCanvasWrap">
+    @if (positionedNodes.length) {
+      <svg class="flowSvg" viewBox="0 0 600 340" role="group" aria-label="Ativos digitais acompanhados e suas cotações atuais">
+        <g class="flowNodes">
+          @for (node of positionedNodes; track node.id) {
+            <g class="flowNode" [class.selected]="selectedSymbol === node.id" [class.sequenceActive]="sequenceIndex() === $index" [style.color]="node.color" [attr.transform]="'translate(' + node.canvasX + ' ' + node.canvasY + ')'" role="button" tabindex="0" [attr.aria-label]="node.label + ' ' + money(node.price) + ' ' + signedPercent(node.change)" (click)="symbolSelected.emit(node.id)" (keydown.enter)="symbolSelected.emit(node.id)">
+              <title>{{ node.label }} · {{ regimeLabel(node.regime) }} · variação {{ signedPercent(node.change) }} · separação do agrupamento {{ node.confidence === null ? 'indisponível' : (node.confidence * 100).toFixed(0) + '%' }} · volatilidade {{ node.volatility === null ? 'indisponível' : (node.volatility * 100).toFixed(4) + '%' }}</title>
+              <circle class="flowNodeHalo" r="23" [attr.stroke]="node.color" [attr.stroke-opacity]=".3 + math.min(math.abs(node.change), 5) * .04"></circle>
+              <circle class="flowNodeCore" r="15" [attr.fill]="node.color" [attr.fill-opacity]=".12" [attr.stroke]="node.color"></circle>
+              <image class="flowNodeLogo" [attr.href]="coinLogoPath(node.id)" x="-11" y="-11" width="22" height="22" preserveAspectRatio="xMidYMid meet"></image>
+              <text class="flowNodePrice" text-anchor="middle" y="38">{{ signedPercent(node.change) }}</text>
+              <text class="flowNodePrice" text-anchor="middle" y="50">{{ intelligence?.status === 'ready' ? regimeLabel(node.regime) : intelligence?.status === 'disabled' ? 'IA DESATIVADA' : 'CALIBRANDO' }}</text>
+            </g>
+          }
+        </g>
+        <text class="aiBubbleStatus" x="300" y="258" text-anchor="middle">{{ intelligenceLabel }} · FLUXO {{ sequenceLabel }} {{ sequenceIndex() + 1 }}/{{ nodes.length }}</text>
+      </svg>
+    } @else {
+      <div class="flowUnavailable"><span class="chartEmptyPulse"></span><strong>Mapa aguardando dados do mercado</strong><span>A falha de uma seção não desativa cotações, carteira ou ordens.</span></div>
+    }
+    <canvas #aiFaceCanvas class="aiFaceCanvas" [class.aiFaceCanvasHidden]="!positionedNodes.length" role="img" aria-label="Visualização tridimensional com partículas percorrendo os ativos acompanhados"></canvas>
+  </div>
+  <div class="networkFooter">
+    <span><i></i>{{ feedFresh ? 'Sincronização ativa' : 'Aguardando cotações atuais' }} <span class="freshnessStamp">{{ updatedAt ? '· ' + shortTime(updatedAt) + ' BRT' : '· sem leitura atual' }}</span></span>
+    <span>{{ intelligence?.status === 'ready' ? intelligence.observations + ' padrões observados pelo modelo' : intelligence?.status === 'disabled' ? 'Inferência desligada por configuração local' : 'Modelo aquecendo com as cotações atuais' }}</span>
+    <span>{{ intelligence?.algorithm ?? 'IA local' }} · {{ intelligence?.status === 'ready' ? 'INFERÊNCIA AO VIVO' : intelligence?.status === 'disabled' ? 'DESATIVADO' : 'CALIBRANDO' }}</span>
+  </div>
+</article>

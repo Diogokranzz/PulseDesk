@@ -1,0 +1,12 @@
+<article class="panel ordersPanel">
+  <div class="panelHeader"><div><div class="panelTitle">{{ showOpenOnly ? 'Ordens em aberto' : 'Histórico de ordens' }} <span class="countBadge">{{ visibleOrders.length.toString().padStart(2, '0') }}</span></div><div class="chartSubtitle">{{ showOpenOnly ? 'ORDENS LIMITADAS AGUARDANDO EXECUÇÃO' : 'ORDENS SIMULADAS DA CONTA' }}</div></div>
+    @if (allowCancel && showOpenOnly && visibleOrders.length) { <button class="textButton" type="button" [disabled]="pending" (click)="cancel.emit('*')">Cancelar todas <span>×</span></button> }
+  </div>
+  <div class="tableWrap"><table><thead><tr><th>HORÁRIO</th><th>ATIVO</th><th>LADO</th><th>TIPO</th><th>QUANTIDADE</th><th>PREÇO LIMITE</th><th>STATUS</th><th></th></tr></thead><tbody>
+    @for (order of visibleOrders; track order.id) {
+      <tr><td>{{ dateTime(order.createdAt) }}</td><td>{{ order.symbol.replace('USD', '') }}</td><td><span class="sideBadge" [class.buyBadge]="order.side === 'buy'" [class.sellBadge]="order.side === 'sell'">{{ order.side === 'buy' ? 'COMPRA' : 'VENDA' }}</span></td><td>{{ order.type === 'limit' ? 'LIMITADA' : 'MERCADO' }}</td><td>{{ quantity(order.quantity) }}</td><td>{{ order.limitPrice === null ? 'MERCADO' : money(order.limitPrice) }}</td><td><span class="statusBadge" [class.filledBadge]="order.status === 'filled'" [class.cancelledBadge]="order.status === 'cancelled'">{{ statusLabel(order) }}</span></td><td>@if (allowCancel && order.status === 'open') { <button class="cancelOrderButton" type="button" [disabled]="pending" [attr.aria-label]="'Cancelar ordem ' + order.id" (click)="cancel.emit(order.id)">×</button> }</td></tr>
+    } @empty {
+      <tr><td colspan="8" class="tableEmpty">{{ showOpenOnly ? 'Nenhuma ordem aguardando execução.' : 'Nenhuma ordem registrada.' }}</td></tr>
+    }
+  </tbody></table></div>
+</article>
