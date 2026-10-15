@@ -7,9 +7,9 @@
     "node": "^22.22.3 || ^24.15.0 || >=26.0.0"
   },
   "scripts": {
-    "start": "npm run build && node src/server.js",
+    "start": "ng serve --host 127.0.0.1 --port 4200",
     "dev:api": "node --watch src/server.js",
-    "dev:ui": "ng serve --host 127.0.0.1 --proxy-config frontend/proxy.conf.json",
+    "dev:ui": "ng serve --host 127.0.0.1 --port 4200",
     "build": "ng build --configuration production",
     "typecheck": "ng build --configuration development"
   },

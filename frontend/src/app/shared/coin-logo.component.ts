@@ -21,7 +21,7 @@ export class CoinLogoComponent {
 
   get assetPath(): string {
     const ticker = this.symbol.toUpperCase().replace(/USD$/, '');
-    return `/assets/coins/${ticker in LOGO_NAMES ? ticker.toLowerCase() : 'asset'}.svg`;
+    return new URL(`assets/coins/${ticker in LOGO_NAMES ? ticker.toLowerCase() : 'asset'}.svg`, document.baseURI).toString();
   }
 
   get accessibleName(): string {

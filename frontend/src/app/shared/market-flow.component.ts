@@ -147,7 +147,7 @@ export class MarketFlowComponent implements AfterViewInit, OnChanges, OnDestroy 
 
   coinLogoPath(symbol: string): string {
     const ticker = symbol.toUpperCase().replace(/USD$/, '');
-    return `/assets/coins/${['BTC', 'ETH', 'SOL', 'XRP', 'ADA'].includes(ticker) ? ticker.toLowerCase() : 'asset'}.svg`;
+    return new URL(`assets/coins/${['BTC', 'ETH', 'SOL', 'XRP', 'ADA'].includes(ticker) ? ticker.toLowerCase() : 'asset'}.svg`, document.baseURI).toString();
   }
 
   private resizeCanvas(): void {

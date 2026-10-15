@@ -91,7 +91,7 @@ export class AppComponent implements OnInit {
     return this.side() === 'buy' ? notional * 1.001 : notional * 0.999;
   });
   readonly liveLabel = computed(() => {
-    if (!this.marketData.marketIsLive()) return this.marketData.snapshot() ? 'DADOS DESATUALIZADOS' : 'AGUARDANDO API';
+    if (!this.marketData.marketIsLive()) return this.marketData.snapshot() ? 'DADOS DESATUALIZADOS' : 'AGUARDANDO FEED';
     return this.marketData.snapshot()?.feed.provider === 'Kraken' ? 'AO VIVO · KRAKEN' : 'AO VIVO';
   });
   readonly visibleMarkets = computed(() => this.marketData.snapshot()?.markets ?? []);

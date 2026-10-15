@@ -1,5 +1,5 @@
 <article class="panel providerPanel">
-  <div class="panelHeader"><div><div class="panelTitle">Saúde da API e dos provedores</div><div class="chartSubtitle">FRESCOR DAS COTAÇÕES, RECONEXÕES E CONEXÕES EM TEMPO REAL</div></div><span class="panelTag">{{ apiLive ? 'API LOCAL ATIVA' : 'API LOCAL SEM RESPOSTA' }} · {{ sseConnections }} SSE</span></div>
+  <div class="panelHeader"><div><div class="panelTitle">Conexão dos provedores e armazenamento</div><div class="chartSubtitle">COTAÇÕES PÚBLICAS DIRETAS · FINANÇAS SALVAS NESTE NAVEGADOR</div></div><span class="panelTag">{{ apiLive ? 'APP ATIVO · DADOS LOCAIS' : 'AGUARDANDO FEED' }}</span></div>
   <div class="providerRows">
     <div class="providerRow">
       <div class="providerName"><i [class.isFresh]="sources.coinbase.status === 'online' && sources.coinbase.freshAssets > 0"></i>Coinbase · principal</div>

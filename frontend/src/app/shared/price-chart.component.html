@@ -39,5 +39,5 @@
     }
     <div class="chartLegend"><span><i class="legendCandleUp"></i>Alta</span><span><i class="legendCandleDown"></i>Baixa</span><span><i class="legendVolume"></i>Volume</span></div>
   </div>
-  <div class="chartFooter"><span><span class="chartFooterDot"></span> Coinbase Advanced Trade</span><span>{{ active.updatedAt ? shortTime(active.updatedAt) + ' BRT' : 'AGUARDANDO FEED' }}</span></div>
+  <div class="chartFooter"><span><span class="chartFooterDot"></span> {{ active.source }}</span><span>{{ active.updatedAt ? shortTime(active.updatedAt) + ' BRT' : 'AGUARDANDO FEED' }}</span></div>
 </article>

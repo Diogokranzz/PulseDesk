@@ -11,6 +11,6 @@
       <pd-orders-table [orders]="snapshot.orders" [showOpenOnly]="true" [pending]="busy()" (cancel)="cancelOrder($event)"></pd-orders-table>
     </section>
   } @else {
-    <section class="startupState" role="status"><span class="chartEmptyPulse"></span><div><h2>Carteira protegida durante a reconexão</h2><p>Os dados financeiros serão carregados quando a API local responder. Nenhum saldo será presumido.</p></div></section>
+    <section class="startupState" role="status"><span class="chartEmptyPulse"></span><div><h2>Carteira salva neste navegador</h2><p>Informe manualmente o capital para começar. Nenhum saldo inicial será presumido.</p></div></section>
   }
 </main>

@@ -3,7 +3,7 @@
 
   <section class="headingRow">
     <div><div class="eyebrow"><span class="eyebrowLine"></span> DESK INSTITUCIONAL <span class="eyebrowMuted">/ VISÃO GERAL</span></div><h1>Visão de mercado</h1></div>
-    <div class="headingActions"><span class="lastUpdate"><span class="liveDot" [class.staleFeed]="data.displayMode() === 'stale' || data.displayMode() === 'degraded'" [class.offlineFeed]="data.displayMode() === 'offline'"></span><span>{{ data.displayMode() === 'live' ? 'Feed ao vivo' : data.displayMode() === 'offline' ? 'API local indisponível' : 'Aguardando cotações ao vivo' }}{{ data.snapshot()?.feed?.marketUpdatedAt ? ' · ' + shortTime(data.snapshot()?.feed?.marketUpdatedAt) + ' BRT' : '' }}</span></span>
+    <div class="headingActions"><span class="lastUpdate"><span class="liveDot" [class.staleFeed]="data.displayMode() === 'stale' || data.displayMode() === 'degraded'" [class.offlineFeed]="data.displayMode() === 'offline'"></span><span>{{ data.displayMode() === 'live' ? 'Feed ao vivo' : data.displayMode() === 'offline' ? 'Feeds indisponíveis' : 'Aguardando cotações ao vivo' }}{{ data.snapshot()?.feed?.marketUpdatedAt ? ' · ' + shortTime(data.snapshot()?.feed?.marketUpdatedAt) + ' BRT' : '' }}</span></span>
       <button class="subtleButton" type="button" (click)="refresh()" [disabled]="busy()"><span class="refreshIcon">↻</span><span>{{ busy() ? 'Atualizando…' : 'Atualizar painel' }}</span></button>
     </div>
   </section>
@@ -28,7 +28,7 @@
       <pd-performance-chart [points]="snapshot.performance" [dailyReturn]="snapshot.account.dailyValuationComplete ? snapshot.account.dailyPercent : null" [capitalConfigured]="snapshot.account.capitalConfigured"></pd-performance-chart>
     </section>
   } @else {
-    <section class="startupState" role="status"><span class="chartEmptyPulse"></span><div><h2>Terminal local iniciando</h2><p>A interface está ativa. Assim que a API responder, os painéis serão preenchidos sem recarregar a página.</p></div><span class="startupStateStatus">{{ data.displayMode() === 'offline' ? 'AGUARDANDO API' : 'CONECTANDO' }}</span></section>
+    <section class="startupState" role="status"><span class="chartEmptyPulse"></span><div><h2>Conectando às fontes públicas</h2><p>Os painéis serão preenchidos assim que Coinbase ou Kraken responderem.</p></div><span class="startupStateStatus">{{ data.displayMode() === 'offline' ? 'AGUARDANDO FEED' : 'CONECTANDO' }}</span></section>
   }
 </main>
 
