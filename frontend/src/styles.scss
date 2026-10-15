@@ -786,8 +786,9 @@ h1 {
 
 .chartPanel {
   grid-column: span 8;
-  min-height: 377px;
-  align-self: start;
+  min-height: max(377px, calc(100svh - 48px));
+  display: flex;
+  flex-direction: column;
 }
 
 .bookPanel {
@@ -934,7 +935,9 @@ h1 {
 }
 
 .chartCanvasWrap {
-  height: 225px;
+  height: auto;
+  min-height: 225px;
+  flex: 1 1 auto;
   position: relative;
   margin-top: 9px;
 }
@@ -3169,7 +3172,7 @@ h1 {
   }
 
   .chartPanel {
-    min-height: 347px;
+    min-height: max(347px, calc(100svh - 48px));
   }
 
   .panelTitle {
@@ -3218,7 +3221,9 @@ h1 {
   }
 
   .chartCanvasWrap {
-    height: 208px;
+    height: auto;
+    min-height: 208px;
+    flex: 1 1 auto;
   }
 
   .chartLegend {
